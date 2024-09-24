@@ -1,0 +1,23 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet id="rgvtlg-24.09-21-01-01" author="r.rogov">
+        <comment>Create users table</comment>
+        <sql splitStatements="false">
+            CREATE TABLE users
+            (
+                id                   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                telegram_user_id       BIGINT UNIQUE NOT NULL,
+                first_name           VARCHAR(65),
+                last_name            VARCHAR(65),
+                username             VARCHAR(33) UNIQUE,
+                question             VARCHAR(4097),
+                notification_allowed BOOLEAN NOT NULL DEFAULT FALSE,
+                state                VARCHAR(30) NOT NULL DEFAULT 'GREETING'
+            );
+
+            CREATE INDEX idx_notification_allowed ON users (notification_allowed);
+        </sql>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: TlgBot
+  datasource:
+    url: jdbc:postgresql://localhost:5432/abc
+    username:
+    password:
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    database: postgresql
+  liquibase:
+    change-log: classpath:/db/liquibase/changelog-master.xml
+    enabled: true
+
+#custom config properties section
+tlgbot:
+  webhook:
+    url:
+  bot:
+    token:
