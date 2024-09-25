@@ -6,6 +6,7 @@ import ru.rogoff.tlgbot.enums.State;
 import ru.rogoff.tlgbot.model.User;
 import ru.rogoff.tlgbot.repo.UserRepo;
 
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -29,5 +30,9 @@ public class UserService {
 
     public void save(User user) {
         userRepo.save(user);
+    }
+
+    public List<User> findAllByNotificationAllowed(boolean allowed) {
+        return userRepo.findAllByNotificationAllowed(allowed);
     }
 }

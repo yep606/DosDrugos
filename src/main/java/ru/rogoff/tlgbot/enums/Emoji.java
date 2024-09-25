@@ -7,7 +7,12 @@ public enum Emoji {
     CHECK_MARK("\u2705"),           // ✅
     CROSS_MARK("\u274c"),           // ❌
     DOCUMENT("\uD83D\uDCC4"),      // 📄
-    MOVIE_CAMERA("\uD83C\uDFA5");  // 🎥
+    MOVIE_CAMERA("\uD83C\uDFA5"),  // 🎥
+    LEFTWARDS_ARROW("\u21A9"),    // ↩
+    LIGHT_BULB("\uD83D\uDCA1"),   // 💡
+    EXCLAMATION_MARK("\u2757"),    // ❗
+    STAR("\u2B50");                // ⭐
+
     private final String unicode;
 
     Emoji(String unicode) {
@@ -18,4 +23,4 @@ public enum Emoji {
     public String toString() {
         return unicode;
     }
-}
+    }

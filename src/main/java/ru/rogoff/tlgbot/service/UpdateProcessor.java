@@ -5,12 +5,12 @@ import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import ru.rogoff.tlgbot.converter.UserConverter;
 import ru.rogoff.tlgbot.enums.State;
@@ -20,11 +20,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * 1) Admin / User ROLES
- * 2) State machine
- * 3) Excel generation
- */
+import static com.pengrad.telegrambot.model.request.ParseMode.HTML;
+import static ru.rogoff.tlgbot.enums.Emoji.LIGHT_BULB;
+import static ru.rogoff.tlgbot.enums.Emoji.STAR;
+import static ru.rogoff.tlgbot.enums.State.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -32,7 +32,7 @@ public class UpdateProcessor {
 
     private static final String GREETING_MESSAGE =
             """
-                    %s, приветствуем Вас!
+                    Приветствуем Вас!
                     Добро пожаловать на канал Dos Drugos.
                     Здесь Вы можете анонимно оставить Ваш вопрос для передачи «Разговоры с утками».
                     Пожалуйста, не стесняйтесь выражать Ваши мысли, эмоции, постарайтесь описать ситуацию как можно подробнее и ярче,
@@ -41,35 +41,46 @@ public class UpdateProcessor {
 
     private static final String ALLOW_NOTIFICATION_MESSAGE =
             """
-                    %s, cпасибо за участие и оставленный вопрос!
+                    Спасибо за участие и оставленный вопрос!
                     Нажмите кнопку «да», если хотите получить уведомление о выходе выпуска шоу с Вашим вопросом.
                     В обратном случае нажмите кнопку «нет».
                     """;
     private static final List<Long> ADMIN_IDS = Arrays.asList(259891990L, 255602825L);
 
+    private static final String ASK_QUESTION_TEXT = "Задать вопрос%s".formatted(LIGHT_BULB);
+    private static final ReplyKeyboardMarkup ASK_QUESTION_MARKUP = new ReplyKeyboardMarkup(ASK_QUESTION_TEXT).oneTimeKeyboard(false).resizeKeyboard(true);
+
+    private static final String SUCCESS_NOTIFICATION_SEND = "Уведомление успешно отправлено%s\nПолучили: <b>%d</b>";
     private final TelegramBot bot;
     private final UserConverter converter;
     private final UserService userService;
+    private final UserStateService stateService;
     private final CallbackQueryProcessor callbackProcessor;
     private final AdminMessageProcessor adminMessageProcessor;
+    private final NotificationService notificationService;
 
     public void processUpdate(Update update) {
         log.info("Update incoming: {}", update);
         if (hasCallbackQuery(update)) {
             callbackProcessor.process(update.callbackQuery());
-        } else if (isAdmin(update.message().from().id()) && "/admin".equals(update.message().text())){
+        } else if (Objects.isNull(update.message())) { // BUG
+            log.error("Telegram bug catch: " + update.callbackQuery());
+        } else if (isAdmin(update.message().from().id()) && "/admin".equals(update.message().text())) {
             adminMessageProcessor.processMessage(update.message());
-        } else{
+        } else {
             Message userMessage = update.message();
             Long telegramUserId = userMessage.from().id();
             User user = userService.findByTelegramUserId(telegramUserId);
 
             SendMessage sendMessage = switch (user.getState()) {
                 case GREETING -> greeting(userMessage);
+                case MAIN_MENU -> mainMenu(userMessage, user);
                 case REWRITE_QUESTION -> rewriteQuestion(userMessage);
                 case ASK_QUESTION -> askQuestion(userMessage, user);
                 case ASK_NOTIFICATION -> askNotification(userMessage);
-                case ENDING -> ending(userMessage, user);
+                // admin
+                case SEND_VIDEO_LINK -> sendVideoLink(userMessage, user);
+                default -> new SendMessage("default", "default");
             };
 
             SendResponse response = bot.execute(sendMessage);
@@ -78,25 +89,30 @@ public class UpdateProcessor {
         }
     }
 
+    // State GREETING получаем только один раз: когда пользователя в бд еще нет
     private SendMessage greeting(Message message) {
-        if (message.text().equals("Задать вопрос")) {
-            User user = converter.toEntity(message.from());
-            user.setState(State.ASK_QUESTION);
-            userService.save(user);
+        User user = converter.toEntity(message.from(), message.chat().id());
+        user.setState(State.MAIN_MENU);
+        userService.save(user);
 
+        return new SendMessage(message.chat().id(), GREETING_MESSAGE).replyMarkup(ASK_QUESTION_MARKUP);
+    }
+
+    private SendMessage mainMenu(Message message, User user) {
+        if (message.text().equals(ASK_QUESTION_TEXT)) {
+            if (StringUtils.isNotEmpty(user.getQuestion())) {
+                return new SendMessage(message.chat().id(), "Вы уже задали свой вопрос!");
+            }
+            stateService.updateState(user.getTelegramUserId(), ASK_QUESTION);
             return new SendMessage(message.chat().id(), "Напишите свой вопрос в чат!");
         }
-
-        Keyboard replyKeyboardMarkup = new ReplyKeyboardMarkup("Задать вопрос")
-                .oneTimeKeyboard(true)
-                .resizeKeyboard(true);
-        return new SendMessage(message.chat().id(), GREETING_MESSAGE.formatted(message.from().firstName())).replyMarkup(replyKeyboardMarkup);
+        return new SendMessage(message.chat().id(), "Не понимаю вас :(").replyMarkup(ASK_QUESTION_MARKUP);
     }
 
     private SendMessage askQuestion(Message message, User user) {
         String question = message.text();
         user.setQuestion(question);
-        user.setState(State.ASK_NOTIFICATION);
+        user.setState(ASK_NOTIFICATION);
         userService.save(user);
 
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
@@ -104,7 +120,7 @@ public class UpdateProcessor {
                 new InlineKeyboardButton("Нет").callbackData("false")
         );
 
-        return new SendMessage(message.chat().id(), ALLOW_NOTIFICATION_MESSAGE.formatted(message.from().firstName()))
+        return new SendMessage(message.chat().id(), ALLOW_NOTIFICATION_MESSAGE)
                 .replyMarkup(inlineKeyboard);
     }
 
@@ -113,13 +129,14 @@ public class UpdateProcessor {
 
     }
 
-    private SendMessage ending(Message message, User user) {
-        if (user.isNotificationAllowed()) {
-            return new SendMessage(message.chat().id(), "Вы уже задали свой вопрос и получите уведомление о выпуске шоу!");
+    // TODO: реализовать отправку по подписчикам
+    // TODO: в транзакцию поменять стейт и сохранение видео
+    // TODO: чек на валидную ссылку
+    private SendMessage sendVideoLink(Message message, User user) {
+        int notified = notificationService.notifyAll(message.text());
+        stateService.updateState(user.getTelegramUserId(), MAIN_MENU);
 
-        } else {
-            return new SendMessage(message.chat().id(), "Вы уже задали свой вопрос.");
-        }
+        return new SendMessage(message.chat().id(), SUCCESS_NOTIFICATION_SEND.formatted(STAR, notified)).parseMode(HTML);
     }
 
     private SendMessage rewriteQuestion(Message message) {

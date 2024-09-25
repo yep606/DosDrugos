@@ -8,13 +8,14 @@
             CREATE TABLE users
             (
                 id                   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                telegram_user_id       BIGINT UNIQUE NOT NULL,
+                telegram_user_id     BIGINT UNIQUE NOT NULL,
+                chat_id              BIGINT UNIQUE NOT NULL,
                 first_name           VARCHAR(65),
                 last_name            VARCHAR(65),
                 username             VARCHAR(33) UNIQUE,
                 question             VARCHAR(4097),
-                notification_allowed BOOLEAN NOT NULL DEFAULT FALSE,
-                state                VARCHAR(30) NOT NULL DEFAULT 'GREETING'
+                notification_allowed BOOLEAN       NOT NULL DEFAULT FALSE,
+                state                VARCHAR(30)   NOT NULL DEFAULT 'GREETING'
             );
 
             CREATE INDEX idx_notification_allowed ON users (notification_allowed);
