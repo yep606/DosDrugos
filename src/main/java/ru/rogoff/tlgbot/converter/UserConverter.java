@@ -15,5 +15,4 @@ public class UserConverter {
                 .chatId(chatId)
                 .build();
     }
-
 }

@@ -7,6 +7,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -24,7 +25,9 @@ import java.util.stream.IntStream;
 @Component
 @RequiredArgsConstructor
 public class ExcelReportBuilder<T extends ExcelReport<? extends ExcelRowData>> {
-    private static final String EXCEL_DIR = "generated-files/";
+
+    @Value("${tlgbot.excel.dir}")
+    private String excelDir;
 
     public File buildAsFile(T data, String fileName) throws IOException {
         Workbook workbook = build(data);
@@ -32,11 +35,11 @@ public class ExcelReportBuilder<T extends ExcelReport<? extends ExcelRowData>> {
     }
 
     private File writeToFile(Workbook workbook, String fileName) throws IOException {
-        Path directoryPath = Paths.get(EXCEL_DIR);
+        Path directoryPath = Paths.get(excelDir);
         if (Files.notExists(directoryPath)) {
             Files.createDirectories(directoryPath);
         }
-        File file = new File(EXCEL_DIR + fileName);
+        File file = new File(excelDir + fileName);
         try (FileOutputStream fileOut = new FileOutputStream(file)) {
             workbook.write(fileOut);
             workbook.close();

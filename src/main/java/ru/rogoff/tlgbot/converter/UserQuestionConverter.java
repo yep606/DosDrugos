@@ -22,5 +22,4 @@ public class UserQuestionConverter {
                 .notificationAllowed(user.isNotificationAllowed())
                 .build();
     }
-
 }
