@@ -19,7 +19,7 @@ public class WebhookConfig {
     @Value("${tlgbot.webhook.url}")
     private String webhookUrl;
 
-    @Value("classpath:rogov.pem")
+    @Value("classpath:file.crt")
     private Resource resource;
 
     private final TelegramBot bot;

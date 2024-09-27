@@ -2,10 +2,10 @@ server:
   port: 8443
   ssl:
     enabled: true
-    key-store: classpath:rogov.jks
+    key-store: classpath:rgv.jks
     key-store-password: password
     key-store-type: JKS
-    key-alias: rogov.example
+    key-alias: rogovserv.example
 spring:
   application:
     name: TlgBot
