@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
-import java.io.File;
-import java.net.URL;
-import java.util.Objects;
+import org.springframework.core.io.Resource;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,15 +18,16 @@ public class WebhookConfig {
     @Value("${tlgbot.webhook.url}")
     private String webhookUrl;
 
+    @Value("classpath:rogov.pem")
+    private Resource resource;
+
     private final TelegramBot bot;
 
     @PostConstruct
     public void setWebhook() {
         try {
-            ClassLoader classLoader = WebhookConfig.class.getClassLoader();
-            URL resource = classLoader.getResource("rogov.pem");
 
-            SetWebhook request = new SetWebhook().url(webhookUrl).certificate(new File(Objects.requireNonNull(resource).getFile()));
+            SetWebhook request = new SetWebhook().url(webhookUrl).certificate(resource.getFile());
             boolean ok = bot.execute(request).isOk();
             if (ok) {
                 log.info("Webhook successfully set at URL: {}", webhookUrl);
