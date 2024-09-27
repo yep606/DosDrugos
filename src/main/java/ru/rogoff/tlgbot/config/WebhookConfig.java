@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.File;
+import java.net.URL;
+import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,7 +26,10 @@ public class WebhookConfig {
     @PostConstruct
     public void setWebhook() {
         try {
-            SetWebhook request = new SetWebhook().url(webhookUrl).certificate(new File("classpath:rogov.pem"));
+            ClassLoader classLoader = WebhookConfig.class.getClassLoader();
+            URL resource = classLoader.getResource("rogov.pem");
+
+            SetWebhook request = new SetWebhook().url(webhookUrl).certificate(new File(Objects.requireNonNull(resource).getFile()));
             boolean ok = bot.execute(request).isOk();
             if (ok) {
                 log.info("Webhook successfully set at URL: {}", webhookUrl);
