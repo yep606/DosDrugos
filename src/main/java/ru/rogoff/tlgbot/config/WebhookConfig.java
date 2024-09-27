@@ -28,6 +28,7 @@ public class WebhookConfig {
     public void setWebhook() {
         try {
             byte[] bytes = FileCopyUtils.copyToByteArray(resource.getInputStream());
+            log.info("Cert bytes: {}", bytes.length);
             SetWebhook request = new SetWebhook().url(webhookUrl).certificate(bytes);
             boolean ok = bot.execute(request).isOk();
             if (ok) {
