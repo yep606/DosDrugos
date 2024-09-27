@@ -2,10 +2,12 @@ server:
   port: 8443
   ssl:
     enabled: true
-    key-store: classpath:yakovlev.jks
+    key-store: classpath:posheve.p12
     key-store-password: password
-    key-store-type: JKS
-    key-alias: papapeo
+    key-store-type: PKCS12
+    key-alias: posheve
+    trust-store: classpath:posheve.p12
+    trust-store-password: password
 spring:
   application:
     name: TlgBot
