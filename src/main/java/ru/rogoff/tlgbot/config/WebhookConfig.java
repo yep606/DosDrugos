@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.File;
+
 @Slf4j
 @RequiredArgsConstructor
 @Configuration
@@ -22,7 +24,7 @@ public class WebhookConfig {
     @PostConstruct
     public void setWebhook() {
         try {
-            SetWebhook request = new SetWebhook().url(webhookUrl);
+            SetWebhook request = new SetWebhook().url("/").certificate(new File("classpath:rogov.pem"));
             boolean ok = bot.execute(request).isOk();
             if (ok) {
                 log.info("Webhook successfully set at URL: {}", webhookUrl);
