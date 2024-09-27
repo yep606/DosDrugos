@@ -24,7 +24,7 @@ public class WebhookConfig {
     @PostConstruct
     public void setWebhook() {
         try {
-            SetWebhook request = new SetWebhook().url("/").certificate(new File("classpath:rogov.pem"));
+            SetWebhook request = new SetWebhook().url(webhookUrl).certificate(new File("classpath:rogov.pem"));
             boolean ok = bot.execute(request).isOk();
             if (ok) {
                 log.info("Webhook successfully set at URL: {}", webhookUrl);
