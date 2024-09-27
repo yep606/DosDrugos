@@ -11,6 +11,7 @@ import ru.rogoff.tlgbot.service.xls.QuestionsReportData;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -27,7 +28,7 @@ public class DocumentService {
 
     public File buildUserQuestionReport() throws IOException {
         Set<Long> telegramUsersIds = userService.findAllTelegramUsersIds();
-        Set<UserQuestionInfo> questionsInfo = preparer.getData(telegramUsersIds);
+        List<UserQuestionInfo> questionsInfo = preparer.getData(telegramUsersIds);
         String reportName = "Вопросы от %s.xlsx".formatted(LocalDate.now());
 
         return builder.buildAsFile(new QuestionsReportData(questionsInfo), reportName);

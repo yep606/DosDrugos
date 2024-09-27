@@ -17,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -56,7 +55,7 @@ public class ExcelReportBuilder<T extends ExcelReport<? extends ExcelRowData>> {
 
     private void fillSheet(T report, Sheet sheet) {
         fillHeaders(report, sheet);
-        Set<? extends ExcelRowData> rowsData = report.rowsData();
+        List<? extends ExcelRowData> rowsData = report.rowsData();
 
         if (rowsData.isEmpty()) {
             return;

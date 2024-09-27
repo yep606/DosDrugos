@@ -45,7 +45,7 @@ public class UpdateProcessor {
                     Нажмите кнопку «да», если хотите получить уведомление о выходе выпуска шоу с Вашим вопросом.
                     В обратном случае нажмите кнопку «нет».
                     """;
-    private static final List<Long> ADMIN_IDS = Arrays.asList(259891990L, 255602825L);
+    private static final List<Long> ADMIN_IDS = Arrays.asList(5437634273L, 699793356L, 259891990L); // J,Ш,I
 
     private static final String ASK_QUESTION_TEXT = "Задать вопрос%s".formatted(LIGHT_BULB);
     private static final ReplyKeyboardMarkup ASK_QUESTION_MARKUP = new ReplyKeyboardMarkup(ASK_QUESTION_TEXT).oneTimeKeyboard(false).resizeKeyboard(true);
@@ -80,7 +80,6 @@ public class UpdateProcessor {
                 case ASK_NOTIFICATION -> askNotification(userMessage);
                 // admin
                 case SEND_VIDEO_LINK -> sendVideoLink(userMessage, user);
-                default -> new SendMessage("default", "default");
             };
 
             SendResponse response = bot.execute(sendMessage);
@@ -106,7 +105,8 @@ public class UpdateProcessor {
             stateService.updateState(user.getTelegramUserId(), ASK_QUESTION);
             return new SendMessage(message.chat().id(), "Напишите свой вопрос в чат!");
         }
-        return new SendMessage(message.chat().id(), "Не понимаю вас :(").replyMarkup(ASK_QUESTION_MARKUP);
+        return new SendMessage(message.chat().id(), "Нажите <b>Задать вопрос</b>%s".formatted(LIGHT_BULB)).parseMode(HTML)
+                .replyMarkup(ASK_QUESTION_MARKUP);
     }
 
     private SendMessage askQuestion(Message message, User user) {
