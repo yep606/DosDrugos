@@ -2,10 +2,10 @@ server:
   port: 8443
   ssl:
     enabled: true
-    key-store: classpath:rgv.jks
+    key-store: classpath:yakovlev.jks
     key-store-password: password
     key-store-type: JKS
-    key-alias: rogovserv.example
+    key-alias: papapeo
 spring:
   application:
     name: TlgBot
