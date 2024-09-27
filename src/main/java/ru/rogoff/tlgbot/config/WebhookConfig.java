@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.util.FileCopyUtils;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,8 +27,8 @@ public class WebhookConfig {
     @PostConstruct
     public void setWebhook() {
         try {
-
-            SetWebhook request = new SetWebhook().url(webhookUrl).certificate(resource.getFile());
+            byte[] bytes = FileCopyUtils.copyToByteArray(resource.getInputStream());
+            SetWebhook request = new SetWebhook().url(webhookUrl).certificate(bytes);
             boolean ok = bot.execute(request).isOk();
             if (ok) {
                 log.info("Webhook successfully set at URL: {}", webhookUrl);
